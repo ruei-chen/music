@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <!-- <script type="module" src="map.js"></script> -->
+</head>
+<body>
+    <div class="header">
+        <a href="index.html" id="logo">
+            easy go 
+        </a>
+        <div class="header_items">
+            <ul class="drop-down-menu"> 
+                <li><a href="aboutus.html" class="hrefitem">關於我們</a></li>
+                <li><a href="member.html" class="hrefitem">會員專區</a></li>
+                <li id="usernameloclist"><a href="signin.html" class="hrefitem" id="usernameloc">會員登入</a>
+                    <ul class="innerlist">
+                        <li><a id="logout" class="hrefitem" href="index.html">登出</a></li>
+                        
+                    </ul>
+                </li>
+            </ul>
+            
+        </div>
+    </div>
+    <div class="picdiv">
+        <div class="slideshow">
+            <div class="slide__item fades">
+                <div class="slide__pagenumber">1 / 4</div>
+                <img src="https://images.unsplash.com/photo-1619771914272-e3c1ba17ba4d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" />
+            </div>
+            <div class="slide__item fades">
+                <div class="slide__pagenumber">2 / 4</div>
+                <img src="https://images.unsplash.com/photo-1558981806-ec527fa84c39?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" />
+            </div>
+            <div class="slide__item fades">
+                <div class="slide__pagenumber">3 / 4</div>
+                <img src="https://images.unsplash.com/photo-1466196390423-fe0b175e30fa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1039&q=80" />            
+            </div>
+            <div class="slide__item fades">
+                <div class="slide__pagenumber">4 / 4</div>
+                <img src="https://plus.unsplash.com/premium_photo-1661963005592-182d602c6a3f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1471&q=80" />
+            </div>
+            <a id="prev" class="slide__arraw slide__arraw--prev"> ❮ </a>
+            <a id="next" class="slide__arraw slide__arraw--next"> ❯ </a>
+            <div class="slide__dot">
+                <div class="dot" data-value="1"></div>
+                <div class="dot" data-value="2"></div>
+                <div class="dot" data-value="3"></div>
+                <div class="dot" data-value="4"></div>
+            </div>
+        </div>
+    </div>
+    <div id="menu">
+        <button class="menubutton" >電動機車充電站</button>
+        <button class="menubutton" onclick="window.location.href='https://www.example.com';">維修站</button>
+        <button class="menubutton" onclick="window.location.href='https://www.example.com';">台南市加油站</button>
+        <button class="menubutton" onclick="window.location.href='https://www.example.com';">Gogoro電池站</button>
+        <button class="menubutton" onclick="window.location.href='https://www.example.com';">測速照相點</button>
+    </div>
+    <script>
+        var markers = [];
+        var map;
+        var i = 0;
+        function getDataWithInput(table) {
+            var input1 = document.getElementById('County').value;
+            var input2 = document.getElementById('district').value;
+            getData(table, input1, input2);
+        }
+        function getData(table, input1, input2) {
+            // 使用AJAX或其他方式向後端發送請求並傳遞table值
+            // 在這裡可以使用AJAX函式庫（例如jQuery的$.ajax()函式）或原生的fetch API等方法
+            // 下面是一個使用fetch API的示例：
+            fetch("/get_data/" + table  + "/" + input1 + " " + input2, {
+            method: "GET",
+            // 可以根據需要設定其他請求選項，例如標頭或內容類型
+            })
+            .then(response => response.json())
+            .then(data => {
+            // 在这里处理后端返回的数据
+            // 假设数据是一个数组，每个元素都是包含需要显示的字段的对象
+            // 在这里，我们假设有一个id为 "result-container" 的 HTML 元素作为显示结果的容器
+            const positions = data.positions;
+            const resultContainer = document.getElementById("result-container");
+            resultContainer.innerHTML = ""; // 清空容器内容
+
+            // 遍历数据并将其显示在网页上
+            data.informations.forEach(item => {
+                const listItem = document.createElement("li");
+                
+
+                const value = Object.values(item).join(', '); // 将对象的值组合成字符串
+                listItem.textContent = value;
+                resultContainer.appendChild(listItem);
+            });
+
+            markers.forEach(marker => marker.setMap(null));
+            markers.length = 0;
+
+            data.positions.forEach(position => {
+            const marker = new google.maps.Marker({
+                position: { lat: position.latitude, lng: position.longitude },
+                map: map
+                });
+                const customLabel = {
+                    color: '#2e648c', // 文本颜色
+                    fontWeight: 'bold', // 文本粗细
+                    fontSize: '14px', // 文本大小
+                    text: {
+                        backgroundColor: '#ffffff', // 背景颜色
+                        borderRadius: '5px', // 边框圆角半径
+                        padding: '5px 10px' // 内边距
+                    }
+                };
+
+                marker.addListener("click", function() {
+                    // 在这里处理点击事件，例如显示相关信息
+                    const information = data.informations[0]; // 只获取第一个信息对象
+
+                    // 清空其他标记的信息
+                    markers.forEach(marker => {
+                        if (marker !== this) {
+                            marker.setLabel(null); // 清除标记的文本
+                        }
+                    });
+
+                    // 将信息显示在标记上
+                    const labelText = `${information.address}, ${information.id}, ${information.name}`;
+                    this.setLabel({
+                        ...customLabel,
+                        text: labelText
+                    }); // 将自定义标签设置为标记的文本
+                });
+                const information = data.informations[i];
+                i++;
+            markers.push(marker); // 将标记加入数组
+            });
+            })
+            .catch(error => {
+            console.error("Error:", error);
+            });
+        }
+
+        function getDataWithInput1(table) {
+            var input1 = document.getElementById('County').value;
+            var input2 = document.getElementById('district').value;
+            getData1(table, input1, input2);
+        }
+        function getData1(table, input1, input2) {
+            // 使用AJAX或其他方式向後端發送請求並傳遞table值
+            // 在這裡可以使用AJAX函式庫（例如jQuery的$.ajax()函式）或原生的fetch API等方法
+            // 下面是一個使用fetch API的示例：
+            fetch("/get_data/" + table  + "/" + input1 + input2, {
+            method: "GET",
+            // 可以根據需要設定其他請求選項，例如標頭或內容類型
+            })
+            .then(response => response.json())
+            .then(data => {
+            // 在这里处理后端返回的数据
+            // 假设数据是一个数组，每个元素都是包含需要显示的字段的对象
+            // 在这里，我们假设有一个id为 "result-container" 的 HTML 元素作为显示结果的容器
+            const positions = data.positions;
+            const resultContainer = document.getElementById("result-container");
+            resultContainer.innerHTML = ""; // 清空容器内容
+
+            // 遍历数据并将其显示在网页上
+            data.informations.forEach(item => {
+                const listItem = document.createElement("li");
+                const value = Object.values(item).join(', '); // 将对象的值组合成字符串
+                listItem.textContent = value;
+                resultContainer.appendChild(listItem);
+            });
+
+            markers.forEach(marker => marker.setMap(null));
+            markers.length = 0;
+
+            data.positions.forEach(position => {
+            const marker = new google.maps.Marker({
+                position: { lat: position.latitude, lng: position.longitude },
+                map: map
+                });
+                marker.addListener("click", function() {
+                    // 在這裡處理點擊事件，例如顯示相關資訊
+                    // 使用console.log作為示例，您可以根據需求更改為其他方式顯示資訊
+                     // 只获取第一个信息对象
+                    console.log(information);
+                    markers.forEach(marker => {
+                        if (marker !== this) {
+                            marker.setLabel(""); // 清除标记的文本
+                        }
+                    });
+
+                    // 将信息显示在标记上
+                    const labelText = `${information.address}, ${information.id}, ${information.name}`;
+                    this.setLabel(labelText);      
+                });
+                const information = data.informations[i];
+                i++;
+            markers.push(marker); // 将标记加入数组
+            });
+            })
+            .catch(error => {
+            console.error("Error:", error);
+            });
+        }
+
+        function initMap() {
+        console.log(google); // 確認 google 物件是否已經定義
+        console.log(google.maps); // 確認 google.maps 物件是否已經定義
+        // 創建一個新的地圖對象
+        map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 8, // 地圖縮放級別
+            center: { lat: 22.997483, lng: 120.218214 } // 中心座標
+        });
+        var searchService = new google.maps.places.PlacesService(map);
+
+        document.getElementById('locate-btn').addEventListener('click', function() {
+            if (navigator.geolocation) {
+            // 獲取地理位置
+            navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
+            } else {
+            // 瀏覽器不支援地理位置API
+            alert('瀏覽器不支援地理位置功能');
+            }
+        });
+
+        function successCallback(position) {
+            var latitude = position.coords.latitude; // 緯度
+            var longitude = position.coords.longitude; // 經度
+
+            // 創建使用者的LatLng對象
+            var userLocation = new google.maps.LatLng(latitude, longitude);
+
+            // 在地圖上標記使用者的位置
+            var marker = new google.maps.Marker({
+            position: userLocation,
+            map: map
+            });
+
+            // 將地圖中心設置為使用者的位置
+            map.setCenter(userLocation);
+        }
+
+        function errorCallback(error) {
+            switch (error.code) {
+            case error.PERMISSION_DENIED:
+                alert("使用者拒絕提供地理位置");
+                break;
+            case error.POSITION_UNAVAILABLE:
+                alert("無法獲取地理位置資訊");
+                break;
+            case error.TIMEOUT:
+                alert("獲取地理位置超時");
+                break;
+            case error.UNKNOWN_ERROR:
+                alert("發生未知錯誤");
+                break;
+            }
+        }
+        }
+
+        window.initMap = initMap;
+    </script>
+    <!-- <div id="maincontent">
+            
+           <ul id="member_menu">
+            <li>最愛地點</li>
+            <li>新增地點</li>
+           </ul>
+           <div id="member_content">
+                <div>fdsfdfsdfdsfdsfsf</div>
+           </div>
+    </div> -->
+    <div id="maincontent" style='border: #e013a3 solid 3px'>
+        <div id="map_protect" >
+            <div id="map"></div>
+        </div>
+        <div id="besidemap">
+            <div id="member_title"></div>
+            <div id="member_func">
+                <button class="search_button">最愛地點</button>
+                <button class="search_button">新增地點</button>
+            </div>
+            <div id="information-list"></div>
+            <div id="member_content">fdsfdssdgdfhdfghdfghfghfghfghdfghdfgoifdfsdfdsfdsfdsfsdfsdfdsfsdfsdfhudfsighjsdughdfsuigdfhsuigsdfhgudfisghdfuighfdugsegursheiurghsdiufgfhndujigdfhngdfikgrehusghnsdruigf</div>
+        </div>
+    </div>
+    <div style="height: 2000px;"></div>
+    <script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC_lQPUQDubZ06Q29mgzvPQLxMB5zP6cxs&callback=initMap&v=weekly&libraries=places"
+    defer
+    ></script>
+    <script src="member.js"></script>
+</body>
+</html>
